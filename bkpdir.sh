@@ -22,21 +22,41 @@ ERR_LOG_FILE="$OUTPUT_FORMAT.err.log"
 OUTPUT_FILE="$(pwd)/$OUTPUT_FORMAT.tar.gz.gpg"
 BYTES="$(du -sb "$DIR_TO_BKP" | cut -f1)"
 
-function remove_files ()
+function cleanup ()
 {
   echo "Received SIGINT. Cleaning files."
   rm "$OUTPUT_FILE"
   exit 2
 }
 
-trap "remove_files" SIGINT
-tar -cf - "$DIR_TO_BKP" 2> "$ERR_LOG_FILE" \
-  | tqdm --bytes --total "$BYTES" --desc Progress --position 2 --mininterval 0.5 \
-  | gzip \
-  | tqdm --bytes --desc Compressed --position 0 --mininterval 0.5 \
-  | gpg -er "$GPG_KEY" -o - \
-  | tqdm --bytes --desc Encrypted --position 1 --mininterval 0.5 \
-  > "$OUTPUT_FILE" 
+echo "Backing up $DIR_TO_BKP"
+read -p "Use gzip compression? " USE_GZIP
+trap "cleanup" SIGINT
+
+case $USE_GZIP in
+  [yY]* )
+    tar -cf - "$DIR_TO_BKP" 2> "$ERR_LOG_FILE" \
+    | tqdm --bytes --total "$BYTES" --desc Progress --position 2 --mininterval 0.5 \
+    | gzip 2> "$ERR_LOG_FILE" \
+    | tqdm --bytes --desc Compressed --position 0 --mininterval 0.5 \
+    | gpg -er "$GPG_KEY" -o - 2> "$ERR_LOG_FILE" \
+    | tqdm --bytes --desc Encrypted --position 1 --mininterval 0.5 \
+    > "$OUTPUT_FILE"
+    ;; 
+
+  [nN]* ) 
+    tar -cf - "$DIR_TO_BKP" 2> "$ERR_LOG_FILE" \
+    | tqdm --bytes --total "$BYTES" --desc Progress --position 1 --mininterval 0.5 \
+    | gpg -er "$GPG_KEY" -o - 2> "$ERR_LOG_FILE" \
+    | tqdm --bytes --desc Encrypted --position 0 --mininterval 0.5 \
+    > "$OUTPUT_FILE"
+    ;;
+
+  *)
+    echo "Invalid answer. Try again."
+    exit 1
+    ;;
+esac
 
 echo "Error log saved to $(basename $ERR_LOG_FILE)"
 echo "Backup saved to $(basename $OUTPUT_FILE)"
