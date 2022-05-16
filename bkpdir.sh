@@ -4,6 +4,11 @@
 # in the current working directory, and is encrypted
 # using the gpg key supplied as the second CL argument.
 
+if [ "$#" -ne 2 ]; then
+  echo "Usage: $(basename $0) {directory to backup} {gpg key to use}"
+  exit 1
+fi
+
 DIR_TO_BKP="$1"
 GPG_KEY="$2"
 
