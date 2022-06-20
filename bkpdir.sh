@@ -24,7 +24,6 @@ fi
 
 OUTPUT_FORMAT="$(basename $DIR_TO_BKP)_$(date +%d%m%y%H%M).backup"
 ERR_LOG_FILE="$OUTPUT_FORMAT.err.log"
-OUTPUT_FILE="$(pwd)/$OUTPUT_FORMAT.tar.gz.gpg"
 BYTES="$(du -sb "$DIR_TO_BKP" | cut -f1)"
 
 function cleanup ()
@@ -35,11 +34,12 @@ function cleanup ()
 }
 
 echo "Backing up $DIR_TO_BKP"
-read -p "Use gzip compression? " USE_GZIP
+read -p "Use gzip compression? [yn] " USE_GZIP
 trap "cleanup" SIGINT
 
 case $USE_GZIP in
   [yY]* )
+    OUTPUT_FILE="$OUTPUT_FORMAT.tar.gz.gpg"
     tar -cf - "$DIR_TO_BKP" 2> "$ERR_LOG_FILE" \
     | tqdm --bytes --total "$BYTES" --desc Progress --position 2 --mininterval 0.5 \
     | gzip 2> "$ERR_LOG_FILE" \
@@ -49,7 +49,8 @@ case $USE_GZIP in
     > "$OUTPUT_FILE"
     ;; 
 
-  [nN]* ) 
+  [nN]* )
+    OUTPUT_FILE="$OUTPUT_FORMAT.tar.gpg"
     tar -cf - "$DIR_TO_BKP" 2> "$ERR_LOG_FILE" \
     | tqdm --bytes --total "$BYTES" --desc Progress --position 1 --mininterval 0.5 \
     | gpg -er "$GPG_KEY" -o - 2> "$ERR_LOG_FILE" \
