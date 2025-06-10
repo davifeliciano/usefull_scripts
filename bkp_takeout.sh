@@ -5,7 +5,7 @@ if [ "$#" -ne 1 ]; then
 	exit 1
 fi
 
-timestamp=$(ls -1 | grep -oP '(?<=takeout\-)(\d{8}T\d{6}Z)(?=\-\d{3}.tgz)' | sort -u)
+timestamp=$(ls -1 | grep -oP '(?<=takeout\-)(\d{8}T\d{6}Z)(?=.*\.tgz)' | sort -u)
 timestamps_found=$(echo "$timestamp" | wc -l)
 output_file="takeout-$timestamp.tgz.gpg"
 
