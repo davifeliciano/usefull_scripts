@@ -16,10 +16,11 @@ Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
 
 <html>
-<body style="font-family: monospace, courier, monospace;">
-<pre>
+  <body style="font-family: monospace, Courier, monospace; background-color: #e8f5e9; padding: 10px;">
+    <h2 style="color: #2e7d32;">$ASSUNTO - $DISCO</h2>
+    <pre style="background-color: #ffffff; padding: 15px; border: 1px solid #a5d6a7; border-radius: 5px; font-size: 13px;">
 $(nvme smart-log $DISCO)
-</pre>
-</body>
+    </pre>
+  </body>
 </html>
 EOF
